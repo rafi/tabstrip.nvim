@@ -277,14 +277,14 @@ function M.set_highlights_pre9()
 	})
 	-- Modified icon color
 	api.nvim_set_hl(0, 'TabLineIconModified', {
-		fg = opts.colors.modified,
+		fg = opts.colors.modified.fg,
 		bg = tabline_bg,
 		ctermfg = 2,
 		ctermbg = tabline_cterm_bg,
 		default = true,
 	})
 	api.nvim_set_hl(0, 'TabLineIconModifiedSel', {
-		fg = opts.colors.modified,
+		fg = opts.colors.modified.fg,
 		bg = api.nvim_get_hl_by_name('TabLineSel', true).background,
 		ctermfg = 2,
 		ctermbg = api.nvim_get_hl_by_name('TabLineSel', false).background,
