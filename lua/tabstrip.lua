@@ -40,6 +40,8 @@ function M.setup(user_opts)
 		callback = M.set_highlights,
 	})
 
+	M.set_highlights()
+
 	vim.o.tabline='%!v:lua.rafi_tabline()'
 end
 
