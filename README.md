@@ -110,6 +110,8 @@ Alternatives:
 
 - [romgrk/barbar.nvim](https://github.com/romgrk/barbar.nvim)
 - [akinsho/bufferline.nvim](https://github.com/akinsho/bufferline.nvim)
+- [willothy/nvim-cokeline](https://github.com/willothy/nvim-cokeline)
+- [rebelot/heirline.nvim](https://github.com/rebelot/heirline.nvim)
 - [nanozuki/tabby.nvim](https://github.com/nanozuki/tabby.nvim)
 - [kdheepak/tabline.nvim](https://github.com/kdheepak/tabline.nvim)
 

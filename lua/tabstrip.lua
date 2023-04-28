@@ -9,6 +9,8 @@ local api = vim.api
 
 ---@class TabstripConfig
 local default_opts = {
+	-- Limit maximum of chars per tab, 0 for no limit
+	tab_max_chars = 18,
 	-- Limit display of directories in path
 	max_dirs = 1,
 	-- Limit display of characters in each directory in path
@@ -108,7 +110,7 @@ local function make_tab(tabnr, current_tabpage)
 	if tabnr == current_tabpage then
 		line = line .. '%#TabLineSelEdge#%#TabLineSel# '
 	else
-		line = line .. '%#TabLine#  '
+		line = line .. '%#TabLineEdge#%#TabLine# '
 	end
 
 	-- Get file-name with custom cutoff settings
@@ -145,10 +147,21 @@ local function make_tab(tabnr, current_tabpage)
 		tab = tab .. numtr(win_count, opts.numeric_charset)
 	end
 
-	line = line
-		.. '%' .. tostring(tabnr) .. 'T'
-		.. tab
-		-- .. ' '
+	-- Limit tab size
+	if opts.tab_max_chars > 0 then
+		if api.nvim_strwidth(tab) > opts.tab_max_chars then
+			tab = strings.truncate(tab, opts.tab_max_chars, '…', -1)
+		end
+
+		local extra_space = 18 - api.nvim_strwidth(tab)
+		if extra_space > 0 then
+			local pad = ' '
+			local side = extra_space / 2
+			tab = pad:rep(math.floor(side)) .. tab .. pad:rep(math.ceil(side))
+		end
+	end
+
+	line = line .. '%' .. tostring(tabnr) .. 'T' .. tab
 
 	-- Add a symbol if one of the buffers in the tab page is modified
 	if modified then
@@ -167,7 +180,7 @@ local function make_tab(tabnr, current_tabpage)
 		end
 		line = line .. '%#TabLineSelEdge#'
 	else
-		line = line .. '%#TabLine# '
+		line = line .. '%#TabLineEdge#'
 		if not modified then
 			line = line .. ' '
 		end
@@ -177,6 +190,7 @@ local function make_tab(tabnr, current_tabpage)
 end
 
 -- Main line display function.
+---@return string
 function _G.rafi_tabline()
 	if vim.fn.exists('g:SessionLoad') == 1 then
 		-- Skip tabline render during session loading
@@ -213,7 +227,8 @@ end
 -- Highlights
 function M.set_highlights()
 	if vim.fn.has('nvim-0.9') == 0 then
-		return M.set_highlights_pre9()
+		M.set_highlights_pre9()
+		return
 	end
 
 	local hi_tabline = api.nvim_get_hl(0, { name = 'TabLine' })
@@ -227,6 +242,14 @@ function M.set_highlights()
 		fg = hi_tablineproject.bg,
 		bg = hi_tabline.bg,
 		ctermfg = hi_tablineproject.ctermbg,
+		ctermbg = hi_tabline.ctermbg,
+		default = true,
+	})
+	-- Non-selected tabline edge
+	api.nvim_set_hl(0, 'TabLineEdge', {
+		fg = hi_tabline.bg,
+		bg = hi_tabline.bg,
+		ctermfg = hi_tabline.ctermbg,
 		ctermbg = hi_tabline.ctermbg,
 		default = true,
 	})
@@ -258,7 +281,7 @@ end
 ---@deprecated
 function M.set_highlights_pre9()
 	local tabline_bg = api.nvim_get_hl_by_name('TabLine', true).background
-	local tabline_cterm_bg = api.nvim_get_hl_by_name('TabLine', false).background
+	local tabline_ctermbg = api.nvim_get_hl_by_name('TabLine', false).background
 
 	-- Current project color
 	api.nvim_set_hl(0, 'TabLineProject', { link = 'Pmenu', default = true })
@@ -266,14 +289,22 @@ function M.set_highlights_pre9()
 		fg = api.nvim_get_hl_by_name('TabLineProject', true).background,
 		bg = tabline_bg,
 		ctermfg = api.nvim_get_hl_by_name('TabLineProject', false).background,
-		ctermbg = tabline_cterm_bg,
+		ctermbg = tabline_ctermbg,
+		default = true,
+	})
+	-- Non-selected tabline edge
+	api.nvim_set_hl(0, 'TabLineEdge', {
+		fg = tabline_bg,
+		bg = tabline_bg,
+		ctermfg = tabline_ctermbg,
+		ctermbg = tabline_ctermbg,
 		default = true,
 	})
 	-- Selected tab edge color
 	api.nvim_set_hl(0, 'TabLineSelEdge', {
 		fg = tabline_bg,
 		bg = api.nvim_get_hl_by_name('TabLineSel', true).background,
-		ctermfg = tabline_cterm_bg,
+		ctermfg = tabline_ctermbg,
 		ctermbg = api.nvim_get_hl_by_name('TabLineSel', false).background,
 		default = true,
 	})
@@ -282,7 +313,7 @@ function M.set_highlights_pre9()
 		fg = opts.colors.modified.fg,
 		bg = tabline_bg,
 		ctermfg = 2,
-		ctermbg = tabline_cterm_bg,
+		ctermbg = tabline_ctermbg,
 		default = true,
 	})
 	api.nvim_set_hl(0, 'TabLineIconModifiedSel', {
