@@ -25,7 +25,7 @@ local default_opts = {
 		modified = { fg = '#cf6a4c', ctermfg = 2 },
 	},
 
-	numeric_charset = {'⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'},
+	numeric_charset = { '⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹' },
 	-- numeric_charset = {'₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'},
 }
 
@@ -44,7 +44,7 @@ function M.setup(user_opts)
 
 	M.set_highlights()
 
-	vim.o.tabline='%!v:lua.rafi_tabline()'
+	vim.o.tabline = '%!v:lua.rafi_tabline()'
 end
 
 ---@param number integer
@@ -79,7 +79,7 @@ if not ok then
 		---@return string
 		icon = function(bufnr)
 			bufnr = bufnr or 0
-			local buftype = vim.api.nvim_buf_get_option(bufnr, 'buftype')
+			local buftype = vim.bo[bufnr].buftype
 			local bufname = vim.api.nvim_buf_get_name(bufnr)
 			local has_devicons, devicons = pcall(require, 'nvim-web-devicons')
 			if not has_devicons then
@@ -95,7 +95,7 @@ if not ok then
 				icon = devicons.get_default_icon().icon
 			end
 			return icon
-		end
+		end,
 	}
 end
 
@@ -115,12 +115,8 @@ local function make_tab(tabnr, current_tabpage)
 
 	-- Get file-name with custom cutoff settings
 	local winbuf = api.nvim_win_get_buf(api.nvim_tabpage_get_win(tabnr))
-	local fpath = badge.filepath(
-		winbuf,
-		opts.max_dirs,
-		opts.directory_max_chars,
-		'_tab'
-	)
+	local fpath =
+		badge.filepath(winbuf, opts.max_dirs, opts.directory_max_chars, '_tab')
 
 	-- File-type icon
 	line = line .. badge.icon(winbuf) .. ' '
@@ -134,9 +130,9 @@ local function make_tab(tabnr, current_tabpage)
 	local tab_windows = api.nvim_tabpage_list_wins(tabnr)
 	for _, winnr in ipairs(tab_windows) do
 		local bufnr = api.nvim_win_get_buf(winnr)
-		if api.nvim_buf_get_option(bufnr, 'buftype') == '' then
+		if vim.bo[bufnr].buftype == '' then
 			win_count = win_count + 1
-			if not modified and api.nvim_buf_get_option(bufnr, 'modified') then
+			if not modified and vim.bo[bufnr].modified then
 				modified = true
 			end
 		end
@@ -170,7 +166,7 @@ local function make_tab(tabnr, current_tabpage)
 		else
 			line = line .. '%#TabLineIconModified#'
 		end
-		line = line .. opts.icons.modified ..'%*'
+		line = line .. opts.icons.modified .. '%*'
 	end
 
 	-- Right-side
