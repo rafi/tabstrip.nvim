@@ -38,7 +38,7 @@ function M.setup(user_opts)
 	opts = vim.tbl_extend('force', default_opts, user_opts or {})
 
 	api.nvim_create_autocmd('ColorScheme', {
-		group = api.nvim_create_augroup('rafi_tabline', {}),
+		group = api.nvim_create_augroup('rafi.tabline', {}),
 		callback = M.set_highlights,
 	})
 
@@ -61,41 +61,41 @@ local function numtr(number, charset)
 	return result
 end
 
-local ok, badge = pcall(require, 'rafi.lib.badge')
+---@param bufnr integer
+---@return string
+local function get_icon(bufnr)
+	bufnr = bufnr or 0
+	local buftype = vim.bo[bufnr].buftype
+	local bufname = vim.api.nvim_buf_get_name(bufnr)
+	local has_devicons, devicons = pcall(require, 'nvim-web-devicons')
+	if not has_devicons then
+		return ''
+	end
+	if buftype == '' and bufname == '' then
+		return devicons.get_default_icon().icon
+	end
+	local f_name = vim.fn.fnamemodify(bufname, ':t')
+	local f_extension = vim.fn.fnamemodify(bufname, ':e')
+	local icon, _ = devicons.get_icon(f_name, f_extension)
+	if icon == '' or icon == nil then
+		icon = devicons.get_default_icon().icon
+	end
+	return icon
+end
+
+---@param bufnr integer
+local function filepath(bufnr)
+	bufnr = bufnr or 0
+	local bufname = vim.api.nvim_buf_get_name(bufnr)
+	return vim.fn.fnamemodify(bufname, ':~:t') or 'N/A'
+end
+
+local ok, Util = pcall(require, 'lazyvim.util')
 if not ok then
-	badge = {
-		---@return string
-		project = function()
-			return vim.fn.fnamemodify(vim.loop.cwd(), ':~:t')
-		end,
-		---@param bufnr integer
-		---@return string
-		filepath = function(bufnr, _, _, _)
-			bufnr = bufnr or 0
-			local bufname = vim.api.nvim_buf_get_name(bufnr)
-			return vim.fn.fnamemodify(bufname, ':~:t')
-		end,
-		---@param bufnr integer
-		---@return string
-		icon = function(bufnr)
-			bufnr = bufnr or 0
-			local buftype = vim.bo[bufnr].buftype
-			local bufname = vim.api.nvim_buf_get_name(bufnr)
-			local has_devicons, devicons = pcall(require, 'nvim-web-devicons')
-			if not has_devicons then
-				return ''
-			end
-			if buftype == '' and bufname == '' then
-				return devicons.get_default_icon().icon
-			end
-			local f_name = vim.fn.fnamemodify(bufname, ':t')
-			local f_extension = vim.fn.fnamemodify(bufname, ':e')
-			local icon, _ = devicons.get_icon(f_name, f_extension)
-			if icon == '' or icon == nil then
-				icon = devicons.get_default_icon().icon
-			end
-			return icon
-		end,
+	Util = {
+		root = {
+			get = vim.loop.cwd,
+		},
 	}
 end
 
@@ -115,11 +115,10 @@ local function make_tab(tabnr, current_tabpage)
 
 	-- Get file-name with custom cutoff settings
 	local winbuf = api.nvim_win_get_buf(api.nvim_tabpage_get_win(tabnr))
-	local fpath =
-		badge.filepath(winbuf, opts.max_dirs, opts.directory_max_chars, '_tab')
+	local fpath = filepath(winbuf)
 
 	-- File-type icon
-	line = line .. badge.icon(winbuf) .. ' '
+	line = line .. get_icon(winbuf) .. ' '
 
 	-- Make tab
 	local tab = fpath:gsub('%%', '%%%%')
@@ -195,7 +194,7 @@ function _G.rafi_tabline()
 
 	-- Active project name
 	local line = '%#TabLineProject# '
-		.. badge.project()
+		.. (vim.fn.fnamemodify(Util.root.get(), ':t') or '')
 		.. ' %#TabLineProjectEdge#'
 
 	-- Iterate through all tabs and collect labels
