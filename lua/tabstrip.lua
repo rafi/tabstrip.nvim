@@ -222,11 +222,6 @@ end
 
 -- Highlights
 function M.set_highlights()
-	if vim.fn.has('nvim-0.9') == 0 then
-		M.set_highlights_pre9()
-		return
-	end
-
 	local hi_tabline = api.nvim_get_hl(0, { name = 'TabLine' })
 	local hi_tablinesel = api.nvim_get_hl(0, { name = 'TabLineSel' })
 
@@ -270,53 +265,6 @@ function M.set_highlights()
 		bg = hi_tablinesel.bg,
 		ctermfg = opts.colors.modified.ctermfg,
 		ctermbg = hi_tablinesel.ctermbg,
-		default = true,
-	})
-end
-
----@deprecated
-function M.set_highlights_pre9()
-	local tabline_bg = api.nvim_get_hl_by_name('TabLine', true).background
-	local tabline_ctermbg = api.nvim_get_hl_by_name('TabLine', false).background
-
-	-- Current project color
-	api.nvim_set_hl(0, 'TabLineProject', { link = 'Pmenu', default = true })
-	api.nvim_set_hl(0, 'TabLineProjectEdge', {
-		fg = api.nvim_get_hl_by_name('TabLineProject', true).background,
-		bg = tabline_bg,
-		ctermfg = api.nvim_get_hl_by_name('TabLineProject', false).background,
-		ctermbg = tabline_ctermbg,
-		default = true,
-	})
-	-- Non-selected tabline edge
-	api.nvim_set_hl(0, 'TabLineEdge', {
-		fg = tabline_bg,
-		bg = tabline_bg,
-		ctermfg = tabline_ctermbg,
-		ctermbg = tabline_ctermbg,
-		default = true,
-	})
-	-- Selected tab edge color
-	api.nvim_set_hl(0, 'TabLineSelEdge', {
-		fg = tabline_bg,
-		bg = api.nvim_get_hl_by_name('TabLineSel', true).background,
-		ctermfg = tabline_ctermbg,
-		ctermbg = api.nvim_get_hl_by_name('TabLineSel', false).background,
-		default = true,
-	})
-	-- Modified icon color
-	api.nvim_set_hl(0, 'TabLineIconModified', {
-		fg = opts.colors.modified.fg,
-		bg = tabline_bg,
-		ctermfg = 2,
-		ctermbg = tabline_ctermbg,
-		default = true,
-	})
-	api.nvim_set_hl(0, 'TabLineIconModifiedSel', {
-		fg = opts.colors.modified.fg,
-		bg = api.nvim_get_hl_by_name('TabLineSel', true).background,
-		ctermfg = 2,
-		ctermbg = api.nvim_get_hl_by_name('TabLineSel', false).background,
 		default = true,
 	})
 end
