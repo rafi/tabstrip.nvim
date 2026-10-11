@@ -18,7 +18,7 @@ Features:
 
 Requirements:
 
-- [Neovim] ≥0.8
+- [Neovim] ≥0.10
 - [nvim-web-devicons]
 - [plenary.nvim]
 
@@ -35,7 +35,7 @@ Use your favorite package-manager:
     'nvim-lua/plenary.nvim'
   },
   version = false,
-  config = true,
+  opts = {},
 },
 ```
 
